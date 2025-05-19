@@ -1,0 +1,1 @@
+document.addEventListener("DOMContentLoaded",(function(){console.log("DOMContentLoaded"),"undefined"!=typeof gsap?document.querySelectorAll(".wp-block-create-block-gsapify").forEach((e=>{})):console.warn("GSAP is not loaded. Please check if the GSAPify block is properly configured.")}));
