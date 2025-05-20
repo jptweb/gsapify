@@ -39,57 +39,73 @@ function gsapify_enqueue_gsap() {
         // Get enabled plugins
         $enabled_plugins = gsapify_get_enabled_plugins();
         $dependencies = gsapify_get_plugin_dependencies();
+        $skip_main = gsapify_skip_main_library();
         
-        // Add core GSAP
-        wp_enqueue_script(
-            'gsap',
-            'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js',
-            array(),
-            '3.13.0',
-            true
-        );
+        $gsap_handle = 'gsap';
+        $gsap_deps = array();
+        
+        // Add core GSAP if not skipped
+        if (!$skip_main) {
+            wp_enqueue_script(
+                'gsap',
+                'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js',
+                array(),
+                '3.13.0',
+                true
+            );
+        } else {
+            // When skipping, we'll use a dummy handle for dependencies
+            $gsap_handle = 'gsap-dummy';
+            wp_register_script($gsap_handle, false);
+        }
 
-        // Add dependencies first
-        $processed_plugins = array();
-        foreach ($enabled_plugins as $plugin) {
-            if (isset($dependencies[$plugin])) {
-                foreach ($dependencies[$plugin] as $dependency) {
-                    if (!in_array($dependency, $processed_plugins)) {
-                        wp_enqueue_script(
-                            'gsap-' . strtolower($dependency),
-                            'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/' . $dependency . '.min.js',
-                            array('gsap'),
-                            '3.13.0',
-                            true
-                        );
-                        $processed_plugins[] = $dependency;
+        // If we have plugins to load
+        if (!empty($enabled_plugins)) {
+            // Add dependencies first
+            $processed_plugins = array();
+            foreach ($enabled_plugins as $plugin) {
+                if (isset($dependencies[$plugin])) {
+                    foreach ($dependencies[$plugin] as $dependency) {
+                        if (!in_array($dependency, $processed_plugins)) {
+                            wp_enqueue_script(
+                                'gsap-' . strtolower($dependency),
+                                'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/' . $dependency . '.min.js',
+                                array($gsap_handle),
+                                '3.13.0',
+                                true
+                            );
+                            $processed_plugins[] = $dependency;
+                        }
                     }
                 }
             }
-        }
 
-        // Add enabled plugins
-        foreach ($enabled_plugins as $plugin) {
-            if (!in_array($plugin, $processed_plugins)) {
-                wp_enqueue_script(
-                    'gsap-' . strtolower($plugin),
-                    'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/' . $plugin . '.min.js',
-                    array('gsap'),
-                    '3.13.0',
-                    true
-                );
-                $processed_plugins[] = $plugin;
+            // Add enabled plugins
+            foreach ($enabled_plugins as $plugin) {
+                if (!in_array($plugin, $processed_plugins)) {
+                    wp_enqueue_script(
+                        'gsap-' . strtolower($plugin),
+                        'https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/' . $plugin . '.min.js',
+                        array($gsap_handle),
+                        '3.13.0',
+                        true
+                    );
+                    $processed_plugins[] = $plugin;
+                }
+            }
+
+            // Add plugin registration script if we have plugins to register
+            if (!empty($processed_plugins)) {
+                $script_handle = $skip_main ? 'gsap-dummy' : 'gsap';
+                wp_add_inline_script($script_handle, '
+                    document.addEventListener("DOMContentLoaded", function() {
+                        if (typeof gsap !== "undefined") {
+                            gsap.registerPlugin(' . implode(',', $processed_plugins) . ');
+                        }
+                    });
+                ');
             }
         }
-
-        // Add plugin registration script
-        wp_add_inline_script('gsap', '
-            document.addEventListener("DOMContentLoaded", function() {
-                if (typeof gsap !== "undefined") {
-                    gsap.registerPlugin(' . implode(',', $processed_plugins) . ');
-                }
-            });
-        ');
     }
 }
 add_action('wp_enqueue_scripts', 'gsapify_enqueue_gsap');

@@ -32,6 +32,12 @@ function gsapify_register_settings() {
         'sanitize_callback' => 'gsapify_sanitize_plugins',
         'default' => array()
     ) );
+    
+    register_setting( 'gsapify_settings', 'gsapify_skip_main', array(
+        'type' => 'boolean',
+        'sanitize_callback' => 'rest_sanitize_boolean',
+        'default' => false
+    ) );
 }
 add_action( 'admin_init', 'gsapify_register_settings' );
 
@@ -51,6 +57,13 @@ function gsapify_sanitize_plugins( $plugins ) {
 function gsapify_get_enabled_plugins() {
     $plugins = get_option( 'gsapify_plugins' );
     return is_array( $plugins ) ? $plugins : array();
+}
+
+/**
+ * Check if main GSAP library should be skipped
+ */
+function gsapify_skip_main_library() {
+    return get_option( 'gsapify_skip_main', false );
 }
 
 /**
@@ -105,6 +118,22 @@ function gsapify_settings_page() {
                             ?>
                         </fieldset>
                         <p class="description">Select the GSAP plugins you want to enable. Only selected plugins will be loaded when needed.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Manual GSAP Loading</th>
+                    <td>
+                        <fieldset>
+                            <legend class="screen-reader-text">Skip loading the main GSAP library</legend>
+                            <label>
+                                <input type="checkbox" 
+                                       name="gsapify_skip_main" 
+                                       value="1"
+                                       <?php checked( get_option( 'gsapify_skip_main' ), true ); ?>>
+                                Skip loading the main GSAP library (load it manually)
+                            </label>
+                        </fieldset>
+                        <p class="description">Check this if you want to manually enqueue the main GSAP library in your theme or another plugin. Plugin functionality will remain the same, but the main GSAP library will not be automatically loaded.</p>
                     </td>
                 </tr>
             </table>
