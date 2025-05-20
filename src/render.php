@@ -38,13 +38,13 @@ function render_block_gsapify( $attributes, $content, $block ) {
     );
     
     // Add the HTML content
-    $output .= wp_kses_post( $custom_html );
+    $output .=  $custom_html ;
     
     // Add the CSS
     if ( ! empty( $custom_css ) ) {
         $output .= sprintf(
             '<style>%s</style>',
-            wp_kses( $custom_css, array() )
+            $custom_css
         );
     }
     
@@ -60,7 +60,7 @@ function render_block_gsapify( $attributes, $content, $block ) {
                     }
                 });
             </script>',
-            wp_kses( $custom_js, array() )
+            $custom_js
         );
     }
     
