@@ -30,13 +30,15 @@ function gsapify_register_settings() {
     register_setting( 'gsapify_settings', 'gsapify_plugins', array(
         'type' => 'array',
         'sanitize_callback' => 'gsapify_sanitize_plugins',
-        'default' => array()
+        'default' => array(),
+        'show_in_rest' => true
     ) );
     
     register_setting( 'gsapify_settings', 'gsapify_skip_main', array(
         'type' => 'boolean',
         'sanitize_callback' => 'rest_sanitize_boolean',
-        'default' => false
+        'default' => false,
+        'show_in_rest' => true
     ) );
 }
 add_action( 'admin_init', 'gsapify_register_settings' );

@@ -29,12 +29,17 @@ import { InspectorControls, useBlockProps } from '@wordpress/block-editor';
 import { PanelBody, TextareaControl, TabPanel } from '@wordpress/components';
 
 /**
- * Imports the useEffect React Hook. This is used to set an attribute when the
- * block is loaded in the Editor.
+ * Imports the useEffect and useState React Hooks.
  *
  * @see https://react.dev/reference/react/useEffect
+ * @see https://react.dev/reference/react/useState
  */
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+/**
+ * WordPress dependencies
+ */
+import apiFetch from '@wordpress/api-fetch';
 
 import './editor.scss';
 
@@ -53,6 +58,27 @@ import './editor.scss';
 export default function Edit( { attributes, setAttributes } ) {
 	const { customHtml, customCss, customJs } = attributes;
 	const blockProps = useBlockProps();
+	
+	// State for storing GSAP plugins and skip main setting
+	const [enabledPlugins, setEnabledPlugins] = useState([]);
+	const [skipMain, setSkipMain] = useState(false);
+	
+	// Fetch GSAP settings when component mounts
+	useEffect(() => {
+		// Fetch enabled plugins
+		apiFetch({ path: '/wp/v2/settings' })
+			.then((response) => {
+				if (response.gsapify_plugins) {
+					setEnabledPlugins(response.gsapify_plugins);
+				}
+				if (response.hasOwnProperty('gsapify_skip_main')) {
+					setSkipMain(response.gsapify_skip_main);
+				}
+			})
+			.catch((error) => {
+				console.error('Error fetching GSAP settings:', error);
+			});
+	}, []);
 
 	return (
 		<>
@@ -103,13 +129,31 @@ export default function Edit( { attributes, setAttributes } ) {
 									);
 								case 'js':
 									return (
-										<TextareaControl
-											label={ __( 'GSAP Animation Code', 'gsapify' ) }
-											help={ __( 'Add your GSAP animation code here', 'gsapify' ) }
-											value={ customJs }
-											onChange={(value) => setAttributes({ customJs: value })}
-											rows={10}
-										/>
+										<>
+											<TextareaControl
+												label={ __( 'GSAP Animation Code', 'gsapify' ) }
+												help={ __( 'Add your GSAP animation code here', 'gsapify' ) }
+												value={ customJs }
+												onChange={(value) => setAttributes({ customJs: value })}
+												rows={10}
+											/>
+											{!skipMain && enabledPlugins.length > 0 && (
+												<div className="gsapify-enabled-plugins">
+													<p className="gsapify-plugins-title"><strong>{ __( 'Enabled GSAP Plugins:', 'gsapify' ) }</strong></p>
+													<ul className="gsapify-plugins-list">
+														{enabledPlugins.map((plugin) => (
+															<li key={plugin}>{plugin}</li>
+														))}
+													</ul>
+													<p className="gsapify-plugins-help">{ __( 'These plugins are available to use in your GSAP code. To enable more plugins, go to Settings → GSAPify.', 'gsapify' ) }</p>
+												</div>
+											)}
+											{skipMain && (
+												<div className="gsapify-skip-main-notice">
+													<p>{ __( 'Note: You\'ve chosen to skip loading the main GSAP library. Make sure GSAP is loaded via your theme or another plugin.', 'gsapify' ) }</p>
+												</div>
+											)}
+										</>
 									);
 							}
 						}}
