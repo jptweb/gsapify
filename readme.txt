@@ -23,7 +23,7 @@ Whether you’re a full-stack developer, front-end engineer, or just comfortable
 No, the whole reason I wanted this was so that I could just create a quick block on a blog post and simply fill in the fields necceassry and save the overhead of GSAP being loaded on every single website. Its not quite ready yet but this is my intiial commit and a preview of whats to come!
 
 = I need GSAP plugins like ScrollTrigger, how do I load them? =  
-As of now this plugin just enqueues the main gsap library from a CDN. I will add in more features later; but for now you would have to enque extra JS (which I know defeats the whole purpose of this being able to use without touching code, but it will get there eventually)
+As of now this plugin just enqueues the main gsap library from a CDN; and gives you options to load all the free gsap plugins. In the wordpress admin area goto settings->gsapify to choose which plugins you wish to include. More features planned like the option to load from a non-CDN are coming soon!
 
 = Can I use this block multiple times per page? =  
 Yes! Each instance has its own HTML/CSS/JS fields and will enqueue GSAP once.
